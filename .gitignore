@@ -1,0 +1,6 @@
+*.env
+!*example.env
+
+*.crt
+*.key
+*.pfx
