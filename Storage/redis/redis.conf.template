@@ -1,0 +1,15 @@
+# Memory
+maxmemory ${REDIS_MAX_MEMORY}
+maxmemory-policy allkeys-lru
+
+# Persistence
+appendonly yes
+appendfsync everysec
+
+# Security
+requirepass ${REDIS_PASSWORD}
+
+# Disable commands that could destroy all data or expose internals.
+rename-command FLUSHALL ""
+rename-command FLUSHDB ""
+rename-command DEBUG ""

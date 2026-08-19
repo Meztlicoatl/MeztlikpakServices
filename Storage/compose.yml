@@ -65,6 +65,32 @@ services:
       retries: 5
       start_period: 30s
 
+  redis:
+    container_name: meztlikpak-redis
+    build:
+      context: .
+      dockerfile: redis.dockerfile
+      args:
+        - "IMAGE=${REDIS_IMAGE}"
+    restart: unless-stopped
+    env_file: ".env"
+    volumes:
+      - "redis-data:/data"
+    ports:
+      - "${HOST_IPV4}:${REDIS_HOST_PORT}:6379"
+      - "${HOST_IPV6}:${REDIS_HOST_PORT}:6379"
+    networks:
+      - meztlikpak-storage
+    dns:
+      - "1.1.1.1"
+      - "8.8.8.8"
+    healthcheck:
+      test: [ "CMD", "/usr/local/bin/healthcheck.sh" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
 networks:
   meztlikpak-storage:
     name: meztlikpak-storage
@@ -79,4 +105,7 @@ volumes:
     driver: local
   postgresql-data:
     name: meztlikpak-postgresql-data
+    driver: local
+  redis-data:
+    name: meztlikpak-redis-data
     driver: local
