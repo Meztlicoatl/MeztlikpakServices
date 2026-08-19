@@ -1,6 +1,40 @@
 name: meztlikpak-storage
 
 services:
+  postgresql:
+    container_name: meztlikpak-postgresql
+    build:
+      context: .
+      dockerfile: postgresql.dockerfile
+      args:
+        - "IMAGE=${POSTGRESQL_IMAGE}"
+        - "POSTGRESQL_VERSION=${POSTGRESQL_VERSION}"
+    restart: unless-stopped
+    env_file: ".env"
+    volumes:
+      - "postgresql-data:/var/lib/postgresql"
+      - "./postgresql:/docker-entrypoint-initdb.d"
+    ports:
+      - "${HOST_IPV4}:${POSTGRESQL_HOST_PORT}:5432"
+      - "${HOST_IPV6}:${POSTGRESQL_HOST_PORT}:5432"
+    networks:
+      - meztlikpak-storage
+    dns:
+      - "1.1.1.1"
+      - "8.8.8.8"
+    command: [
+      "postgres",
+      "-c", "shared_preload_libraries=pg_cron",
+      "-c", "cron.database_name=${POSTGRES_DB}"
+    ]
+    shm_size: 512mb
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
   mongodb:
     container_name: meztlikpak-mongodb
     image: "${IMAGE}"
@@ -42,4 +76,7 @@ volumes:
     driver: local
   mongodb-data:
     name: meztlikpak-mongodb-data
+    driver: local
+  postgresql-data:
+    name: meztlikpak-postgresql-data
     driver: local
