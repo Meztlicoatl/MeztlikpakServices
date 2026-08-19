@@ -1,0 +1,45 @@
+name: meztlikpak-storage
+
+services:
+  mongodb:
+    container_name: meztlikpak-mongodb
+    image: "${IMAGE}"
+    restart: unless-stopped
+    env_file: ".env"
+    volumes:
+      - "mongodb-configuration:/data/configdb"
+      - "mongodb-data:/data/db"
+      - "./mongodb:/docker-entrypoint-initdb.d"
+    ports:
+      - "${HOST_IPV4}:${MONGODB_HOST_PORT}:27017"
+      - "${HOST_IPV6}:${MONGODB_HOST_PORT}:27017"
+    networks:
+      - meztlikpak-storage
+    dns:
+      - "1.1.1.1"
+      - "8.8.8.8"
+    command: [
+      "mongod",
+      "--bind_ip_all",
+      "--wiredTigerCacheSizeGB", "1"
+    ]
+    shm_size: 512mb
+    healthcheck:
+      test: [ "CMD-SHELL", "mongosh --quiet --eval \"db.adminCommand('ping').ok\" | grep -q 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+networks:
+  meztlikpak-storage:
+    name: meztlikpak-storage
+    driver: bridge
+
+volumes:
+  mongodb-configuration:
+    name: meztlikpak-mongodb-configuration
+    driver: local
+  mongodb-data:
+    name: meztlikpak-mongodb-data
+    driver: local
